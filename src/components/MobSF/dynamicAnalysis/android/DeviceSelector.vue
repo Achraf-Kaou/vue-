@@ -17,7 +17,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue'
-import { DynamicAnalyzerService } from '../../../../api/DynamicAnalyzer'
+import { dynamicAnalyzer } from '../../../../api/DynamicAnalyzer'
 
 export default defineComponent({
   name: 'DeviceSelector',
@@ -28,9 +28,9 @@ export default defineComponent({
       loading.value = true
       try {
         // Replace with actual API call to list devices
-        const service = new DynamicAnalyzerService()
-        const resp = await service.getApps() // getApps returns available devices/apps
-        devices.value = resp.devices || resp // adapt as needed
+        const resp = await dynamicAnalyzer.getApps()
+        // getApps returns available devices/apps
+        devices.value = [resp] // Convert single response to array
       } catch (e) {
         devices.value = []
       } finally {

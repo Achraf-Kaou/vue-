@@ -1,17 +1,18 @@
 import axios from 'axios'
 
-const API_KEY = '080a09ca0616631877987768d6e6c43880417708f3ac0731b0113bd465f3ecb2'
-const API_URL = 'http://localhost:8000'
+const API_KEY = import.meta.env.VITE_MOBSF_API_KEY
+const API_URL = import.meta.env.VITE_MOBSF_API_URL
 
 const headers = {
   Authorization: API_KEY,
-  'Content-Type': 'application/json',
+  'Content-Type': 'multipart/form-data; boundary=<calculated when request is sent>',
 }
 
 interface DynamicAnalysisResponse {
   status: string
   message?: string
   data?: any
+  android_version?: number
 }
 
 interface AppInfo {
@@ -20,13 +21,20 @@ interface AppInfo {
   VERSION_NAME: string
   FILE_NAME: string
   PACKAGE_NAME: string
+  DYNAMIC_REPORT_EXISTS: boolean
+  ICON_PATH: string
 }
 
 interface GetAppsResponse {
-  apks: AppInfo[]
+  android_sdk: string
+  android_supported: number
+  android_version: number
+  apps: AppInfo[]
+  device_packages: any[]
   identifier: string
   proxy_ip: string
   proxy_port: number
+  settings_loc: string
   title: string
   version: string
 }
@@ -44,6 +52,15 @@ interface FridaInstrumentationParams {
   pid?: number
 }
 
+interface listFridaScripts {
+  status: string
+  files: string[]
+}
+
+interface getFridaScript {
+  status: string
+  content: string
+}
 class DynamicAnalyzer {
   private static instance: DynamicAnalyzer
 
@@ -58,7 +75,7 @@ class DynamicAnalyzer {
 
   public async getApps(): Promise<GetAppsResponse> {
     try {
-      const response = await axios.get(`${API_URL}/api/v1/dynamic/get_apps`, { headers })
+      const response = await axios.get(`${API_URL}/dynamic/get_apps`, { headers })
       return response.data
     } catch (error) {
       throw this.handleError(error)
@@ -72,7 +89,7 @@ class DynamicAnalyzer {
   ): Promise<DynamicAnalysisResponse> {
     try {
       const response = await axios.post(
-        `${API_URL}/api/v1/dynamic/start_analysis`,
+        `${API_URL}/dynamic/start_analysis`,
         { hash, re_install: reInstall, install },
         { headers }
       )
@@ -82,13 +99,14 @@ class DynamicAnalyzer {
     }
   }
 
-  public async getLogcat(packageName: string): Promise<DynamicAnalysisResponse> {
+  public async getLogcat(packageName: string): Promise<any> {
     try {
       const response = await axios.post(
-        `${API_URL}/api/v1/android/logcat`,
+        `${API_URL}/android/logcat`,
         { package: packageName },
         { headers }
       )
+      console.log(JSON.stringify(response.data))
       return response.data
     } catch (error) {
       throw this.handleError(error)
@@ -98,7 +116,7 @@ class DynamicAnalyzer {
   public async mobsfy(identifier: string): Promise<DynamicAnalysisResponse> {
     try {
       const response = await axios.post(
-        `${API_URL}/api/v1/android/mobsfy`,
+        `${API_URL}/android/mobsfy`,
         { identifier },
         { headers }
       )
@@ -111,7 +129,7 @@ class DynamicAnalyzer {
   public async rootCA(action: 'install' | 'remove'): Promise<DynamicAnalysisResponse> {
     try {
       const response = await axios.post(
-        `${API_URL}/api/v1/android/root_ca`,
+        `${API_URL}/android/root_ca`,
         { action },
         { headers }
       )
@@ -124,7 +142,7 @@ class DynamicAnalyzer {
   public async globalProxy(action: 'set' | 'unset'): Promise<DynamicAnalysisResponse> {
     try {
       const response = await axios.post(
-        `${API_URL}/api/v1/android/global_proxy`,
+        `${API_URL}/android/global_proxy`,
         { action },
         { headers }
       )
@@ -140,7 +158,7 @@ class DynamicAnalyzer {
   ): Promise<DynamicAnalysisResponse> {
     try {
       const response = await axios.post(
-        `${API_URL}/api/v1/android/activity`,
+        `${API_URL}/android/activity`,
         { hash, test },
         { headers }
       )
@@ -153,7 +171,7 @@ class DynamicAnalyzer {
   public async runTLSTests(hash: string): Promise<DynamicAnalysisResponse> {
     try {
       const response = await axios.post(
-        `${API_URL}/api/v1/android/tls_tests`,
+        `${API_URL}/android/tls_tests`,
         { hash },
         { headers }
       )
@@ -168,7 +186,7 @@ class DynamicAnalyzer {
   ): Promise<DynamicAnalysisResponse> {
     try {
       const response = await axios.post(
-        `${API_URL}/api/v1/frida/instrument`,
+        `${API_URL}/frida/instrument`,
         {
           hash: params.hash,
           default_hooks: params.defaultHooks.join(','),
@@ -189,10 +207,10 @@ class DynamicAnalyzer {
     }
   }
 
-  public async getFridaAPIMonitor(hash: string): Promise<DynamicAnalysisResponse> {
+  public async getFridaAPIMonitor(hash: string): Promise<any> {
     try {
       const response = await axios.post(
-        `${API_URL}/api/v1/frida/api_monitor`,
+        `${API_URL}/frida/api_monitor`,
         { hash },
         { headers }
       )
@@ -202,20 +220,49 @@ class DynamicAnalyzer {
     }
   }
 
-  public async getFridaLogs(hash: string): Promise<DynamicAnalysisResponse> {
+  public async getFridaLogs(hash: string): Promise<any> {
     try {
-      const response = await axios.post(`${API_URL}/api/v1/frida/logs`, { hash }, { headers })
+      const response = await axios.post(`${API_URL}/frida/logs`, { hash }, { headers })
+      console.log(response.data)
       return response.data
     } catch (error) {
       throw this.handleError(error)
     }
   }
 
-  public async listFridaScripts(device: 'android' | 'ios'): Promise<DynamicAnalysisResponse> {
+  public async listFridaScripts(device: 'android' | 'ios'): Promise<listFridaScripts> {
     try {
       const response = await axios.post(
-        `${API_URL}/api/v1/frida/list_scripts`,
+        `${API_URL}/frida/list_scripts`,
         { device },
+        { headers }
+      )
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  public async getFridaRuntimeDependencies(hash: string): Promise<DynamicAnalysisResponse> {
+    try {
+      const response = await axios.post(
+        `${API_URL}/frida/get_dependencies`,
+        { hash },
+        { headers }
+      )
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  public async getFridaScript(script: string, device: 'android' | 'ios'): Promise<getFridaScript> {
+    try {
+      const response = await axios.post(
+        `${API_URL}/frida/get_script`,
+        { 'scripts[]':script ,
+          device
+        },
         { headers }
       )
       return response.data
@@ -227,7 +274,7 @@ class DynamicAnalyzer {
   public async stopAnalysis(hash: string): Promise<DynamicAnalysisResponse> {
     try {
       const response = await axios.post(
-        `${API_URL}/api/v1/dynamic/stop_analysis`,
+        `${API_URL}/dynamic/stop_analysis`,
         { hash },
         { headers }
       )
@@ -240,7 +287,7 @@ class DynamicAnalyzer {
   public async getReport(hash: string): Promise<DynamicAnalysisResponse> {
     try {
       const response = await axios.post(
-        `${API_URL}/api/v1/dynamic/report_json`,
+        `${API_URL}/dynamic/report_json`,
         { hash },
         { headers }
       )
@@ -257,7 +304,7 @@ class DynamicAnalyzer {
   ): Promise<DynamicAnalysisResponse> {
     try {
       const response = await axios.post(
-        `${API_URL}/api/v1/dynamic/view_source`,
+        `${API_URL}/dynamic/view_source`,
         { hash, file, type },
         { headers }
       )

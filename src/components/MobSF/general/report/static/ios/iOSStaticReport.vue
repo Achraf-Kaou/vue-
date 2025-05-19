@@ -92,7 +92,7 @@ const activeTab = ref('security')
 const securityActiveTab = ref('transport_security')
 const malwareActiveTab = ref('malware_lookup')
 const reconActiveTab = ref('urls')
-const componentsActiveTab = ref('activities')
+const componentsActiveTab = ref('libraries')
 const error = ref(null)
 
 // Determine app type from reportData
@@ -143,15 +143,13 @@ const setComponentsActiveTab = (tab: string) => {
 const isActive = (section: string) => activeSection.value === section
 
 // Download PDF report
-const downloadPdfReport = async (hash: string) => {
-  try {
-    // Emit an event to the parent component to handle the PDF download
-    emit('download-pdf', hash)
-  } catch (err) {
-    console.error('Error downloading PDF:', err)
-    error.value = 'Failed to download PDF report. Please try again.'
+const exportPdf = () => {
+  const link = `http://localhost:8089/pdf/${props.fileHash}/`
+  console.log('PDF Report Link:', link)
+  if (props.reportData && props.fileHash) {
+    window.location.href = `http://localhost:8089/pdf/${props.fileHash}/`;
   }
-}
+};
 
 // Define emits
 const emit = defineEmits(['download-pdf'])
@@ -349,29 +347,13 @@ export default {
           <div class="pt-4 mt-4 border-t border-gray-700">
             <li>
               <a
-                @click="
-                  () => {
-                    if (reportData && reportData.fileInfo && reportData.fileInfo.md5)
-                      downloadPdfReport(reportData.fileInfo.md5)
-                  }
-                "
+                @click="exportPdf"
                 class="flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-700 transition-colors cursor-pointer"
               >
                 <span class="mr-3 text-gray-400">
                   <FileText :size="18" />
                 </span>
                 <span>PDF Report</span>
-              </a>
-            </li>
-            <li>
-              <a
-                @click="window.print()"
-                class="flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-700 transition-colors cursor-pointer"
-              >
-                <span class="mr-3 text-gray-400">
-                  <Printer :size="18" />
-                </span>
-                <span>Print Report</span>
               </a>
             </li>
           </div>
@@ -567,7 +549,7 @@ export default {
             <!-- Tab Content -->
             <div class="mt-6">
               <MalwareLookup v-if="malwareActiveTab === 'malware_lookup'" :data="reportData" />
-              <ServerLocations v-if="malwareActiveTab === 'serverlocations'" :data="reportData" />
+              <ServerLocations v-if="malwareActiveTab === 'serverlocations'" :data="reportData.domains" />
               <DomainMalwareCheck v-if="malwareActiveTab === 'malware_check'" :data="reportData" />
             </div>
           </div>

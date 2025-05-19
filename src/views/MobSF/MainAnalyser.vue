@@ -1,230 +1,238 @@
 <template>
-  <div class="p-6">
+  <div class="max-w-auto mx-auto p-4 md:p-6 bg-slate-50 min-h-screen">
     <!-- Main content -->
-    <div v-if="!showReport">
-      <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-semibold">Main Analyzer</h1>
+    <div v-if="!showReport" class="space-y-8">
+      <!-- Header with navigation buttons -->
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-2">
+        <h1 class="text-3xl font-bold text-slate-800">Mobile Security</h1>
+
+        <div class="flex flex-wrap gap-3">
         <button
-          class="btn btn-primary flex items-center gap-2"
+            class="btn bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
           @click="navigateTo('/static-analysis')"
         >
           <Upload class="w-5 h-5" />
-          Upload New App
+            <span>Upload App</span>
         </button>
+
         <button
-          class="btn btn-primary w-full flex items-center justify-center gap-2"
+            class="btn bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
           @click="navigateTo('/dynamic-analysis')"
         >
           <Play class="w-5 h-5" />
-          Dynamic Analysis
+            <span>Run Dynamic Analysis</span>
         </button>
+
         <button
-          class="btn btn-primary w-full flex items-center justify-center gap-2"
+            class="btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
           @click="navigateTo('/list-scans')"
         >
           <FileText class="w-5 h-5" />
-          View Reports
+            <span>View Reports</span>
         </button>
-      </div>
-
-      <div v-if="loading" class="flex justify-center py-8">
-        <Loader class="w-8 h-8 text-blue-500 animate-spin" />
-        <span class="ml-2 text-gray-600">Loading...</span>
-      </div>
-
-      <div v-else-if="error" class="p-4 bg-red-50 rounded-lg">
-        <div class="flex items-center">
-          <AlertCircle class="w-5 h-5 text-red-400 mr-2" />
-          <span class="text-red-700">{{ error }}</span>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2">
-          <div class="card">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-xl font-semibold">Recent Analysis</h2>
+      <!-- Loading and error states -->
+      <div v-if="loading" class="flex justify-center py-10">
+        <div class="flex flex-col items-center">
+          <Loader class="w-10 h-10 text-indigo-500 animate-spin" />
+          <span class="mt-3 text-slate-600">Loading data...</span>
+        </div>
+      </div>
+
+      <div v-else-if="error" class="p-5 bg-red-50 rounded-xl border border-red-200">
+        <div class="flex items-center">
+          <AlertCircle class="w-6 h-6 text-red-500 mr-3" />
+          <span class="text-red-700 font-medium">{{ error }}</span>
+        </div>
+      </div>
+
+      <!-- Main dashboard grid -->
+      <div v-else class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <!-- Recent Analysis Table - Takes 3/4 of space on large screens -->
+        <div class="lg:col-span-3 bg-white rounded-xl shadow-md overflow-hidden">
+          <div class="flex items-center justify-between p-5 border-b border-gray-100">
+            <h2 class="text-xl font-bold text-slate-800">Recent Analysis</h2>
               <button
-                class="text-primary-600 hover:text-primary-800"
+              class="text-indigo-600 hover:text-indigo-800 font-medium flex items-center"
                 @click="navigateTo('/list-scans')"
               >
                 View All
+              <ChevronRight class="w-4 h-4 ml-1" />
               </button>
             </div>
 
-            <div v-if="loading" class="flex justify-center py-8">
-              <Loader class="w-8 h-8 text-blue-500 animate-spin" />
-              <span class="ml-2 text-gray-600">Loading...</span>
-            </div>
-
-            <div v-else-if="error" class="p-4 bg-red-50 rounded-lg">
-              <div class="flex items-center">
-                <AlertCircle class="w-5 h-5 text-red-400 mr-2" />
-                <span class="text-red-700">{{ error }}</span>
-              </div>
-            </div>
-
-            <div v-else class="overflow-x-auto">
+          <div class="overflow-x-auto">
               <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                   <tr>
-                    <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Application Name
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Application
                     </th>
-                    <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Analysis Type
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Type
                     </th>
-                    <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Platform
                     </th>
-                    <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Analysis Date
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Date
                     </th>
-                    <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
-                    <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                  <tr v-for="scan in scans" :key="scan.MD5" class="hover:bg-gray-50">
+                <tr v-for="scan in scans" :key="scan.MD5" class="hover:bg-gray-50 transition-colors">
                     <td class="px-6 py-4 whitespace-nowrap">
-                      {{ scan.APP_NAME || scan.FILE_NAME }}
+                    <div class="font-medium text-gray-900">{{ scan.APP_NAME || scan.FILE_NAME }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center space-x-2">
+                      <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                        Static Analysis
+                      </span>
+                      <span
+                        v-if="scan.hasDynamicAnalysis"
+                        :class="[
+                          'px-2 py-1 text-xs font-medium rounded-full',
+                          'bg-green-100 text-green-800'
+                        ]"
+                      >
+                        Dynamic Analysis
+                      </span>
+                      <span v-else class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                        No Dynamic Analysis
+                      </span>
+                    </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span
                         :class="[
                           'px-2 py-1 text-xs font-medium rounded-full',
-                          getTypeClass(scan.ANALYZER),
+                        scan.SCAN_TYPE === 'apk' || scan.SCAN_TYPE === 'xapk'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-blue-100 text-blue-800',
                         ]"
                       >
-                        {{
-                          scan.ANALYZER?.includes('static') ? 'Static Analysis' : 'Dynamic Analysis'
-                        }}
+                      {{ scan.SCAN_TYPE === 'apk' || scan.SCAN_TYPE === 'xapk' ? 'Android' : 'iOS' }}
                       </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <span
-                        :class="[
-                          'px-2 py-1 text-xs font-medium rounded-full',
-                          getAppTypeClass(scan.SCAN_TYPE),
-                        ]"
-                      >
-                        {{
-                          scan.SCAN_TYPE === 'apk' || scan.SCAN_TYPE === 'xapk' ? 'Android' : 'iOS'
-                        }}
-                      </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(scan.TIMESTAMP) }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <span
-                        :class="[
-                          'px-2 py-1 text-xs font-medium rounded-full',
-                          getStatusClass(
-                            scan.SCAN_LOGS?.includes('Saving to Database')
-                              ? 'Completed'
-                              : 'In Progress'
-                          ),
-                        ]"
-                      >
-                        {{
-                          scan.SCAN_LOGS?.includes('Saving to Database')
-                            ? 'Completed'
-                            : 'In Progress'
-                        }}
-                      </span>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ formatDate(scan.TIMESTAMP) }}
+                  </td>
+                   <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      :class="[
+                        'px-2 py-1 text-xs font-medium rounded-full',
+                        (scan.status || (scan.SCAN_LOGS?.includes('Saving to Database') ? 'Completed' : 'In Progress')) === 'Completed'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      ]"
+                    >
+                      {{ scan.status || (scan.SCAN_LOGS?.includes('Saving to Database') ? 'Completed' : 'In Progress') }}
+                    </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center space-x-2">
                       <button
-                        class="text-primary-600 hover:text-primary-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                        @click="viewReport(scan)"
-                        :disabled="scan.SCAN_LOGS?.includes('Saving to Database') === false"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        @click="viewStaticReport(scan)"
+                        :disabled="!scan.SCAN_LOGS?.includes('Saving to Database')"
                       >
-                        <FileText class="w-5 h-5" />
+                        <FileText class="w-4 h-4 mr-1" />
+                        Static
                       </button>
+
+                      <button
+                        v-if="scan.hasDynamicAnalysis"
+                        class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-emerald-700 bg-emerald-100 hover:bg-emerald-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors"
+                        @click="viewDynamicReport(scan)"
+                      >
+                        <Activity class="w-4 h-4 mr-1" />
+                        Dynamic
+                      </button>
+                    </div>
                     </td>
                   </tr>
                 </tbody>
               </table>
-            </div>
           </div>
         </div>
 
-        <div class="space-y-6">
-          <div class="card">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-xl font-semibold">Analysis Statistics</h2>
+        <!-- Statistics Cards - Takes 1/4 of space on large screens -->
+        <div class="lg:col-span-1 space-y-6">
+          <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="p-5 border-b border-gray-100">
+              <h2 class="text-xl font-bold text-slate-800">Analysis Stats</h2>
             </div>
 
-            <div v-if="loadingStats">
-              <div class="flex justify-center py-8">
-                <Loader class="w-8 h-8 text-blue-500 animate-spin" />
-                <span class="ml-2 text-gray-600">Loading...</span>
+            <div v-if="loadingStats" class="flex justify-center py-10">
+              <div class="flex flex-col items-center">
+                <Loader class="w-8 h-8 text-indigo-500 animate-spin" />
+                <span class="mt-3 text-slate-600">Loading stats...</span>
               </div>
             </div>
 
-            <div v-else>
-              <div class="grid grid-cols-2 gap-4 mb-6">
-                <div class="bg-gray-50 rounded-lg p-4 text-center">
-                  <h3 class="text-sm font-medium text-gray-600">Total Scans</h3>
-                  <div class="text-2xl font-bold mt-2">{{ stats.totalScans }}</div>
+            <div v-else class="p-5 space-y-4">
+              <!-- Stats Grid -->
+              <div class="grid grid-cols-2 gap-4">
+                <div class="bg-slate-50 rounded-lg p-4 text-center transition-all hover:shadow-md">
+                  <h3 class="text-sm font-medium text-slate-600">Total Scans</h3>
+                  <div class="text-2xl font-bold text-slate-800 mt-2">{{ stats.totalScans }}</div>
                 </div>
-                <div class="bg-blue-50 rounded-lg p-4 text-center">
-                  <h3 class="text-sm font-medium text-blue-600">Average Security Score</h3>
-                  <div class="text-2xl font-bold text-blue-600 mt-2">
+
+                <div class="bg-blue-50 rounded-lg p-4 text-center transition-all hover:shadow-md">
+                  <h3 class="text-sm font-medium text-blue-700">Avg Security</h3>
+                  <div class="text-2xl font-bold text-blue-700 mt-2">
                     {{ stats.avgSecurityScore.toFixed(1) }}
                   </div>
                 </div>
-                <div class="bg-green-50 rounded-lg p-4 text-center group relative">
-                  <h3 class="text-sm font-medium text-green-600">Max Score</h3>
-                  <div class="text-2xl font-bold text-green-600 mt-2">
+
+                <div class="bg-green-50 rounded-lg p-4 text-center group relative transition-all hover:shadow-md">
+                  <h3 class="text-sm font-medium text-green-700">Max Score</h3>
+                  <div class="text-2xl font-bold text-green-700 mt-2">
                     {{ stats.maxSecurityScore }}
                   </div>
                   <div
                     v-if="maxScoreAppNames.length"
-                    class="absolute left-1/2 -translate-x-1/2 mt-2 w-max bg-white border border-gray-200 rounded shadow-lg px-3 py-2 text-xs text-gray-700 opacity-0 group-hover:opacity-100 transition pointer-events-none z-10"
+                    class="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-max max-w-[200px] bg-white border border-gray-200 rounded-md shadow-lg px-3 py-2 text-xs text-gray-700 opacity-0 group-hover:opacity-100 transition z-10"
                   >
                     {{ maxScoreAppNames.join(', ') }}
                   </div>
                 </div>
-                <div class="bg-red-50 rounded-lg p-4 text-center group relative">
-                  <h3 class="text-sm font-medium text-red-600">Min Score</h3>
-                  <div class="text-2xl font-bold text-red-600 mt-2">
+
+                <div class="bg-red-50 rounded-lg p-4 text-center group relative transition-all hover:shadow-md">
+                  <h3 class="text-sm font-medium text-red-700">Min Score</h3>
+                  <div class="text-2xl font-bold text-red-700 mt-2">
                     {{ stats.minSecurityScore }}
                   </div>
                   <div
                     v-if="minScoreAppNames.length"
-                    class="absolute left-1/2 -translate-x-1/2 mt-2 w-max bg-white border border-gray-200 rounded shadow-lg px-3 py-2 text-xs text-gray-700 opacity-0 group-hover:opacity-100 transition pointer-events-none z-10"
+                    class="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-max max-w-[200px] bg-white border border-gray-200 rounded-md shadow-lg px-3 py-2 text-xs text-gray-700 opacity-0 group-hover:opacity-100 transition z-10"
                   >
                     {{ minScoreAppNames.join(', ') }}
                   </div>
+                  </div>
                 </div>
 
-                <div class="bg-blue-50 rounded-lg p-4 text-center">
-                  <h3 class="text-sm font-medium text-blue-600">Platform Distribution</h3>
-                  <div class="h-32">
+              <!-- Platform Distribution Chart -->
+              <div class="bg-white rounded-lg p-4 border border-gray-100">
+                <h3 class="text-sm font-medium text-slate-600 mb-3">Platform Distribution</h3>
+                <div class="h-40">
                     <Doughnut :data="platformDistributionData" :options="chartOptions" />
-                  </div>
                 </div>
               </div>
 
-              <div class="bg-red-50 rounded-lg p-4 mb-4">
-                <h3 class="text-sm font-medium text-red-600 mb-2">Risk Distribution</h3>
-                <div class="h-48">
+              <!-- Risk Distribution Chart -->
+              <div class="bg-white rounded-lg p-4 border border-gray-100">
+                <h3 class="text-sm font-medium text-slate-600 mb-3">Risk Distribution</h3>
+                <div class="h-44">
                   <Doughnut :data="riskDistributionData" :options="chartOptions" />
                 </div>
               </div>
@@ -233,19 +241,21 @@
         </div>
       </div>
 
-      <div class="mt-6">
-        <div class="card">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-semibold">Analysis Trends</h2>
-            <div class="flex gap-2">
+      <!-- Analysis Trends Chart -->
+      <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-5 border-b border-gray-100">
+          <h2 class="text-xl font-bold text-slate-800 mb-3 sm:mb-0">Analysis Trends</h2>
+          <div class="inline-flex rounded-md shadow-sm">
               <button
                 v-for="range in ['week', 'month', 'year']"
                 :key="range"
                 :class="[
-                  'px-3 py-1 text-sm rounded-md',
+                'px-4 py-2 text-sm font-medium border',
                   trendTimeRange === range
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
+                  ? 'bg-indigo-600 text-white border-indigo-600'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300',
+                range === 'week' ? 'rounded-l-md' : '',
+                range === 'year' ? 'rounded-r-md' : '',
                 ]"
                 @click="trendTimeRange = range"
               >
@@ -254,6 +264,7 @@
             </div>
           </div>
 
+        <div class="p-5">
           <div class="h-[400px]">
             <Line :data="trendData" :options="chartOptions" />
           </div>
@@ -262,30 +273,37 @@
     </div>
 
     <!-- Report View -->
-    <div v-else>
-      <div class="flex justify-between items-center mb-6">
-        <button
-          @click="closeReport"
-          class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          <ChevronLeft class="w-4 h-4 mr-2" />
-          Back to Analysis
-        </button>
-      </div>
+    <div v-else class="space-y-6">
 
-      <div class="bg-white rounded-lg shadow">
-        <div v-if="loading" class="flex justify-center py-12">
-          <Loader class="w-8 h-8 text-blue-500 animate-spin" />
-          <span class="ml-2 text-gray-600">Loading report...</span>
+      <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div v-if="loading" class="flex justify-center py-16">
+          <div class="flex flex-col items-center">
+            <Loader class="w-10 h-10 text-indigo-500 animate-spin" />
+            <span class="mt-3 text-slate-600">Loading report...</span>
         </div>
-        <div v-else-if="error" class="p-4 text-red-600">
+        </div>
+
+        <div v-else-if="error" class="p-6 text-red-600 flex items-center">
+          <AlertCircle class="w-6 h-6 mr-2" />
           {{ error }}
         </div>
+
         <div v-else>
-          <div v-if="!reportData" class="p-4 text-gray-600">No report data available</div>
+          <div v-if="!reportData" class="p-6 text-gray-600 flex items-center justify-center">
+            <FileX class="w-6 h-6 mr-2" />
+            No report data available
+          </div>
+
           <template v-else>
-            <AndroidStaticReport
+            <AndroidDynamicReport
               v-if="
+                reportData && reportData.isDynamicReport
+              "
+              :reportData="reportData"
+              :fileHash="selectedFileHash"
+            />
+            <AndroidStaticReport
+              v-else-if="
                 reportData &&
                 (reportData.SCAN_TYPE === 'apk' ||
                   reportData.SCAN_TYPE === 'xapk' ||
@@ -295,6 +313,7 @@
               :reportData="reportData"
               :fileHash="selectedFileHash"
             />
+
             <iOSStaticReport
               v-else-if="
                 reportData && (reportData.SCAN_TYPE === 'ipa' || reportData.app_type === 'ipa')
@@ -310,9 +329,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, reactive, watch } from 'vue'
+import { defineComponent, ref, computed, onMounted, reactive, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import StaticAnalyzerService from '../../api/StaticAnalyzer'
+import { dynamicAnalyzer } from '../../api/DynamicAnalyzer'
 import {
   Upload,
   Play,
@@ -358,6 +378,7 @@ import {
 import { Line, Bar, Doughnut } from 'vue-chartjs'
 import AndroidStaticReport from '../../components/MobSF/general/report/static/android/AndroidStaticReport.vue'
 import iOSStaticReport from '../../components/MobSF/general/report/static/ios/iOSStaticReport.vue'
+import AndroidDynamicReport from '../../components/MobSF/general/report/dynamic/android/AndroidDynamicReport.vue'
 
 ChartJS.register(
   CategoryScale,
@@ -383,23 +404,23 @@ interface Scan {
   SCAN_LOGS: string
   type?: string
   status?: string
-}
-
-interface Task {
-  id: number
-  file_name: string
-  description: string
-  type: string
-  status: string
-  progress: number
-  timestamp: string
-  requested_by: string
+  hasDynamicAnalysis?: boolean
 }
 
 interface Filters {
   type: string
   status: string
   dateRange: [string, string]
+}
+
+interface DynamicApp {
+  ICON_PATH: string;
+  MD5: string;
+  APP_NAME: string;
+  VERSION_NAME: string;
+  FILE_NAME: string;
+  PACKAGE_NAME: string;
+  DYNAMIC_REPORT_EXISTS: boolean;
 }
 
 export default defineComponent({
@@ -435,6 +456,7 @@ export default defineComponent({
     List,
     AndroidStaticReport,
     iOSStaticReport,
+    AndroidDynamicReport,
     Line,
     Bar,
     Doughnut,
@@ -445,15 +467,10 @@ export default defineComponent({
     const loading = ref(true)
     const error = ref<string | null>(null)
     const scans = ref<Scan[]>([])
-    const tasks = ref<Task[]>([])
     const currentPage = ref(1)
-    const pageSize = ref(5) // Keep 5 for recent analysis
+    const pageSize = ref(8)
     const total = ref(0)
-    const filters = ref<Filters>({
-      type: '',
-      status: '',
-      dateRange: ['', ''],
-    })
+    let isComponentMounted = false
     const reportData = ref<any>(null)
     const showReport = ref(false)
     const selectedFileHash = ref('')
@@ -462,7 +479,7 @@ export default defineComponent({
     const loadingRisk = ref(true)
     const loadingPlatform = ref(true)
     const loadingTrend = ref(true)
-
+    const service = dynamicAnalyzer
     // Real data from API
     const stats = reactive({
       totalScans: 0,
@@ -561,77 +578,397 @@ export default defineComponent({
         .map((scan: any) => scan.APP_NAME || scan.FILE_NAME || scan.MD5)
     })
 
-    const fetchRecentAnalysis = async () => {
+    // Watch for route changes to refresh data
+    watch(
+      () => router.currentRoute.value.path,
+      (newPath) => {
+        if (newPath === '/main-analyser' && isComponentMounted) {
+          fetchRecentAnalysis()
+          fetchStats()
+          fetchRiskDistribution()
+          fetchPlatformDistribution()
+          fetchTrendData()
+        }
+      }
+    )
+
+    // Clean up function for async operations
+    const cleanup = () => {
+      isComponentMounted = false
+      loading.value = false
+      loadingStats.value = false
+      loadingRisk.value = false
+      loadingPlatform.value = false
+      loadingTrend.value = false
+    }
+
+    onMounted(() => {
+      isComponentMounted = true
+      fetchRecentAnalysis()
+      fetchStats()
+      fetchRiskDistribution()
+      fetchPlatformDistribution()
+      fetchTrendData()
+    })
+
+    onUnmounted(() => {
+      cleanup()
+    })
+
+    // Update fetchRecentAnalysis to check component mount status
+const fetchRecentAnalysis = async () => {
+      if (!isComponentMounted) return
+
       try {
         loading.value = true
         error.value = null
-        const response = await StaticAnalyzerService.getRecentScans(
-          currentPage.value,
-          pageSize.value
-        )
-        scans.value = response.data.content
-        total.value = response.data.count
-        // Apply filters if any
-        if (filters.value.type) {
-          scans.value = scans.value.filter((scan: any) => scan.type === filters.value.type)
+
+        const [staticResponse, dynamicResponse] = await Promise.all([
+          StaticAnalyzerService.getRecentScans(currentPage.value, pageSize.value),
+          service.getApps()
+        ])
+
+        if (!isComponentMounted) return
+
+        const staticScans = staticResponse.data.content;
+        const dynamicApps = (dynamicResponse?.apps || []) as DynamicApp[];
+
+        // Create a map of dynamic analysis status
+        const dynamicStatusMap = new Map(
+          dynamicApps.map(app => [app.MD5, app.DYNAMIC_REPORT_EXISTS])
+        );
+        console.log('Dynamic Status Map:', dynamicStatusMap);
+        // Process static scans and add dynamic info
+        scans.value = staticScans.map(scan => {
+      // Check if scan has completed successfully
+      const scanLogs = scan.SCAN_LOGS || '';
+      const isSaved = typeof scanLogs === 'string' && scanLogs.includes('Saving to Database');
+
+          // Get dynamic status
+          const hasDynamicAnalysis = dynamicStatusMap.get(scan.MD5) || false;
+
+      // Determine scan status based on string content
+      let status = 'In Progress';
+      if (isSaved) {
+        status = 'Completed';
+      } else if (typeof scanLogs === 'string') {
+        if (
+          scanLogs.includes('exception') ||
+          scanLogs.includes('error') ||
+          scanLogs.includes('failed') ||
+          scanLogs.includes('failure')
+        ) {
+          status = 'Failed';
         }
-        if (filters.value.status) {
-          scans.value = scans.value.filter((scan: any) => scan.status === filters.value.status)
-        }
-        if (filters.value.dateRange[0] && filters.value.dateRange[1]) {
-          const startDate = new Date(filters.value.dateRange[0])
-          const endDate = new Date(filters.value.dateRange[1])
-          scans.value = scans.value.filter((scan: any) => {
-            const scanDate = new Date(scan.TIMESTAMP)
-            return scanDate >= startDate && scanDate <= endDate
-          })
-        }
-      } catch (err) {
+      }
+
+      return {
+        ...scan,
+            status,
+            hasDynamicAnalysis,
+            ANALYZER: hasDynamicAnalysis ? 'dynamic_analyzer' : 'static_analyzer'
+      };
+    });
+
+
+        // Combine and sort by timestamp
+        scans.value = [...scans.value]
+          .sort((a, b) => new Date(b.TIMESTAMP).getTime() - new Date(a.TIMESTAMP).getTime())
+          .slice(0, pageSize.value);
+
+        total.value = staticResponse.data.count;
+
+        // Store scores in scansInRange for maxScoreAppNames and minScoreAppNames computed properties
+        scansInRange.value = scans.value.map((scan, index) => ({
+          ...scan,
+          _score: index < scans.value.length ? index : 0
+        }));
+
+  } catch (err) {
+        if (!isComponentMounted) return
         console.error('Error fetching recent analysis:', err)
         error.value = 'Failed to fetch recent analysis'
-      } finally {
-        loading.value = false
-      }
-    }
+  } finally {
+        if (isComponentMounted) {
+          loading.value = false
+  }
+}
+    };
 
     const fetchStats = async () => {
-      loadingStats.value = true
+      if (!isComponentMounted) return
+
       try {
-        const response = await StaticAnalyzerService.getRecentScans(1, 1000)
-        const allScans = response.data.content
-        stats.totalScans = allScans.length
-        // ... scores, min, max, avg
+      loadingStats.value = true
+        const response = await StaticAnalyzerService.getRecentScans(1, 1000);
+        const allScans = response.data.content;
+        stats.totalScans = allScans.length;
+
+        // Fetch scorecards in batches of 10 to avoid overwhelming the server
+        const batchSize = 10;
+        const batches = [];
+        for (let i = 0; i < allScans.length; i += batchSize) {
+          const batch = allScans.slice(i, i + batchSize);
+          batches.push(batch);
+        }
+
+        let validScores: number[] = [];
+        for (const batch of batches) {
+          const batchScores = await Promise.all(
+            batch.map(async (scan) => {
+              try {
+                const scorecard = await StaticAnalyzerService.getScorecard(scan.MD5);
+                return scorecard?.data?.security_score;
+              } catch (error) {
+                console.warn(`Failed to fetch scorecard for ${scan.MD5}:`, error);
+                return null;
+              }
+            })
+          );
+          validScores = validScores.concat(batchScores.filter(score =>
+            score !== null && !isNaN(score) && score >= 0 && score <= 100
+          ) as number[]);
+        }
+
+        if (validScores.length > 0) {
+          stats.avgSecurityScore = Number((validScores.reduce((a, b) => a + b, 0) / validScores.length).toFixed(1));
+          stats.maxSecurityScore = Math.max(...validScores);
+          stats.minSecurityScore = Math.min(...validScores);
+        } else {
+          stats.avgSecurityScore = 0;
+          stats.maxSecurityScore = 0;
+          stats.minSecurityScore = 0;
+        }
+
+        // Store scores in scansInRange for maxScoreAppNames and minScoreAppNames computed properties
+        scansInRange.value = allScans.map((scan, index) => ({
+          ...scan,
+          _score: validScores[index] || 0
+        }));
+
+      } catch (err) {
+        console.error('Error fetching stats:', err);
+        stats.avgSecurityScore = 0;
+        stats.maxSecurityScore = 0;
+        stats.minSecurityScore = 0;
       } finally {
+        if (isComponentMounted) {
         loadingStats.value = false
       }
     }
+    };
 
     const fetchRiskDistribution = async () => {
-      loadingRisk.value = true
+      if (!isComponentMounted) return
+
       try {
-        // fetch scans, scores, puis calculez la distribution
+      loadingRisk.value = true
+        const response = await StaticAnalyzerService.getRecentScans(1, 1000);
+        const allScans = response.data.content;
+
+        // Fetch scorecards in batches of 10
+        const batchSize = 10;
+        const batches = [];
+        for (let i = 0; i < allScans.length; i += batchSize) {
+          const batch = allScans.slice(i, i + batchSize);
+          batches.push(batch);
+        }
+
+        const riskCounts = {
+          high: 0,    // 0-40
+          medium: 0,  // 41-70
+          low: 0      // 71-100
+        };
+
+        for (const batch of batches) {
+          const scorecards = await Promise.all(
+            batch.map(async (scan) => {
+              try {
+                const scorecard = await StaticAnalyzerService.getScorecard(scan.MD5);
+                return scorecard?.data?.security_score;
+              } catch (error) {
+                console.warn(`Failed to fetch scorecard for ${scan.MD5}:`, error);
+                return null;
+              }
+            })
+          );
+
+          // Count risk levels
+          scorecards.forEach(score => {
+            if (score === null || isNaN(score)) return;
+
+            if (score <= 40) riskCounts.high++;
+            else if (score <= 70) riskCounts.medium++;
+            else if (score <= 100) riskCounts.low++;
+          });
+        }
+
+        // Update chart data with percentages
+        const total = riskCounts.high + riskCounts.medium + riskCounts.low;
+        const getPercentage = (count: number) => total > 0 ? Math.round((count / total) * 100) : 0;
+
+        riskDistributionData.value = {
+          labels: [
+            `High Risk (0-40) ${getPercentage(riskCounts.high)}%`,
+            `Medium Risk (41-70) ${getPercentage(riskCounts.medium)}%`,
+            `Low Risk (71-100) ${getPercentage(riskCounts.low)}%`
+          ],
+          datasets: [{
+            data: [riskCounts.high, riskCounts.medium, riskCounts.low],
+            backgroundColor: ['#EF4444', '#F59E0B', '#10B981'],
+            borderWidth: 0
+          }]
+        };
+      } catch (err) {
+        console.error('Error fetching risk distribution:', err);
+        // Set default empty data
+        riskDistributionData.value = {
+          labels: ['High Risk (0-40)', 'Medium Risk (41-70)', 'Low Risk (71-100)'],
+          datasets: [{
+            data: [0, 0, 0],
+            backgroundColor: ['#EF4444', '#F59E0B', '#10B981'],
+            borderWidth: 0
+          }]
+        };
       } finally {
+        if (isComponentMounted) {
         loadingRisk.value = false
       }
     }
+    };
 
     const fetchPlatformDistribution = async () => {
-      loadingPlatform.value = true
+      if (!isComponentMounted) return
+
       try {
-        // fetch scans, puis calculez la distribution
+        loadingPlatform.value = true
+        const response = await StaticAnalyzerService.getRecentScans(1, 1000);
+        const allScans = response.data.content;
+
+        // Calculate platform distribution
+        const platforms = {
+          android: allScans.filter(scan =>
+            scan.SCAN_TYPE === 'apk' || scan.SCAN_TYPE === 'xapk'
+          ).length,
+          ios: allScans.filter(scan =>
+            scan.SCAN_TYPE === 'ipa'
+          ).length
+        };
+
+        // Update chart data
+        platformDistributionData.value = {
+          labels: ['Android', 'iOS'],
+          datasets: [{
+            data: [platforms.android, platforms.ios],
+            backgroundColor: ['#10B981', '#3B82F6'],
+            borderWidth: 0
+          }]
+        };
+      } catch (err) {
+        console.error('Error fetching platform distribution:', err);
       } finally {
+        if (isComponentMounted) {
         loadingPlatform.value = false
       }
     }
+    };
 
     const fetchTrendData = async () => {
-      loadingTrend.value = true
+      if (!isComponentMounted) return
+
       try {
-        // fetch scans, puis calculez les datasets pour le graphique
+        loadingTrend.value = true
+        const [staticResponse, dynamicResponse] = await Promise.all([
+          StaticAnalyzerService.getRecentScans(1, 1000),
+          service.getApps()
+        ]);
+
+        const staticScans = staticResponse.data.content;
+        const dynamicApps = (dynamicResponse?.apps || []) as DynamicApp[];
+
+        const dates = getDateRange(trendTimeRange.value);
+
+        const trendsData = dates.map(date => ({
+          date,
+          static: 0,
+          dynamic: 0
+        }));
+
+        // Process static analysis data
+        staticScans.forEach(scan => {
+          const scanDate = new Date(scan.TIMESTAMP).toISOString().split('T')[0];
+          const dateIndex = trendsData.findIndex(d => d.date === scanDate);
+          if (dateIndex !== -1) {
+            trendsData[dateIndex].static++;
+          }
+        });
+
+        // Process dynamic analysis data
+        dynamicApps.forEach(app => {
+          if (app.DYNAMIC_REPORT_EXISTS) {
+            const matchingStaticScan = staticScans.find(scan => scan.MD5 === app.MD5);
+            if (matchingStaticScan) {
+              const scanDate = new Date(matchingStaticScan.TIMESTAMP).toISOString().split('T')[0];
+              const dateIndex = trendsData.findIndex(d => d.date === scanDate);
+              if (dateIndex !== -1) {
+                trendsData[dateIndex].dynamic++;
+              }
+            }
+          }
+        });
+
+        // Update chart data
+        trendData.value = {
+          labels: dates.map(date => {
+            const d = new Date(date);
+            return trendTimeRange.value === 'year'
+              ? d.toLocaleString('default', { month: 'short' })
+              : d.toLocaleString('default', { weekday: 'short' });
+          }),
+          datasets: [
+            {
+              label: 'Static Analysis',
+              data: trendsData.map(d => d.static),
+              borderColor: '#3B82F6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              tension: 0.4
+            },
+            {
+              label: 'Dynamic Analysis',
+              data: trendsData.map(d => d.dynamic),
+              borderColor: '#10B981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              tension: 0.4
+            }
+          ]
+        };
+      } catch (err) {
+        console.error('Error fetching trend data:', err);
+        trendData.value = {
+          labels: [],
+          datasets: [
+            {
+              label: 'Static Analysis',
+              data: [],
+              borderColor: '#3B82F6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              tension: 0.4
+            },
+            {
+              label: 'Dynamic Analysis',
+              data: [],
+              borderColor: '#10B981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              tension: 0.4
+            }
+          ]
+        };
       } finally {
+        if (isComponentMounted) {
         loadingTrend.value = false
       }
     }
+    };
 
     const getDateRange = (range: string) => {
       const today = new Date()
@@ -654,13 +991,6 @@ export default defineComponent({
         })
       return dates
     }
-
-    watch(trendTimeRange, () => {
-      fetchTrendData()
-      fetchStats()
-      fetchRiskDistribution()
-      fetchPlatformDistribution()
-    })
 
     const getStatusClass = (status: string) => {
       switch (status) {
@@ -710,19 +1040,14 @@ export default defineComponent({
     }
 
     const getTypeClass = (type: string | undefined) => {
-      if (!type) return 'bg-gray-100 text-gray-800'
+      if (!type) return 'bg-gray-100 text-gray-800';
       switch (type.toLowerCase()) {
-        case 'apk':
-        case 'xapk':
-          return 'bg-green-100 text-green-800'
-        case 'ipa':
-          return 'bg-blue-100 text-blue-800'
-        case 'static':
-          return 'bg-blue-100 text-blue-800'
-        case 'dynamic':
-          return 'bg-green-100 text-green-800'
+        case 'static_analyzer':
+          return 'bg-blue-100 text-blue-800';
+        case 'dynamic_analyzer':
+          return 'bg-green-100 text-green-800';
         default:
-          return 'bg-gray-100 text-gray-800'
+          return 'bg-gray-100 text-gray-800';
       }
     }
 
@@ -732,21 +1057,30 @@ export default defineComponent({
 
     const viewReport = async (scan: Scan) => {
       try {
-        loading.value = true
-        error.value = null
-        console.log('Fetching report for scan:', scan)
-        const response = await StaticAnalyzerService.getJsonReport(scan.MD5)
-        console.log('Report response:', response.data)
-        reportData.value = response.data
-        selectedFileHash.value = scan.MD5
-        showReport.value = true
+        loading.value = true;
+        error.value = null;
+
+        // Check if dynamic report exists
+        const dynamicApps = await service.getApps();
+        const dynamicApp = dynamicApps.apps?.find(app => app.MD5 === scan.MD5);
+
+        if (dynamicApp?.DYNAMIC_REPORT_EXISTS) {
+          router.push(`/dynamic-analysis/report/${scan.MD5}`);
+          return;
+        }
+
+        // Fetch static report if no dynamic report exists
+        const response = await StaticAnalyzerService.getJsonReport(scan.MD5);
+        reportData.value = response.data;
+        selectedFileHash.value = scan.MD5;
+        showReport.value = true;
       } catch (err) {
-        console.error('Error fetching report:', err)
-        error.value = err instanceof Error ? err.message : 'Failed to fetch report'
+        console.error('Error fetching report:', err);
+        error.value = err instanceof Error ? err.message : 'Failed to fetch report';
       } finally {
-        loading.value = false
+        loading.value = false;
       }
-    }
+    };
 
     const closeReport = () => {
       showReport.value = false
@@ -761,19 +1095,84 @@ export default defineComponent({
       return date.toLocaleDateString()
     }
 
-    onMounted(() => {
-      fetchRecentAnalysis()
-      fetchStats()
-      fetchRiskDistribution()
-      fetchPlatformDistribution()
-      fetchTrendData()
-    })
+    // Add computed property for dynamic analysis status
+    const getDynamicStatus = async (scan: Scan) => {
+      try {
+        const dynamicApps = await service.getApps();
+        const dynamicApp = dynamicApps.apps?.find(app => app.MD5 === scan.MD5);
+        return dynamicApp?.DYNAMIC_REPORT_EXISTS ? 'Completed' : 'Not Available';
+      } catch (error) {
+        console.error('Error getting dynamic status:', error);
+        return 'Error';
+      }
+    };
+
+    const getAnalysisTypeDisplay = (scan: Scan) => {
+      return 'Static Analysis';
+    };
+
+    const getDynamicStatusClass = (hasDynamicAnalysis: boolean | undefined) => {
+      if (hasDynamicAnalysis) {
+        return 'bg-green-100 text-green-800';
+      }
+      return 'bg-yellow-100 text-yellow-800';
+    };
+
+    const getDynamicStatusText = (hasDynamicAnalysis: boolean | undefined) => {
+      return hasDynamicAnalysis ? 'Dynamic Analysis Available' : 'No Dynamic Analysis';
+    };
+
+    const viewStaticReport = async (scan: Scan) => {
+      try {
+        loading.value = true;
+        error.value = null;
+
+        const response = await StaticAnalyzerService.getJsonReport(scan.MD5);
+        reportData.value = response.data;
+        selectedFileHash.value = scan.MD5;
+        showReport.value = true;
+      } catch (err) {
+        console.error('Error fetching static report:', err);
+        error.value = err instanceof Error ? err.message : 'Failed to fetch static report';
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    const viewDynamicReport = async (scan: Scan) => {
+      try {
+        loading.value = true;
+        error.value = null;
+        console.log('Fetching dynamic report for MD5:', scan.MD5);
+        const response = await service.getReport(scan.MD5);
+        if (response) {
+          reportData.value = {
+            ...response.data,
+            isDynamicReport: true
+          };
+          console.log('Dynamic report data:', reportData.value);
+          selectedFileHash.value = scan.MD5;
+          showReport.value = true;
+        } else {
+          error.value = 'Dynamic report not available';
+        }
+      } catch (err) {
+        console.error('Error fetching dynamic report:', err);
+        error.value = err instanceof Error ? err.message : 'Failed to fetch dynamic report';
+      } finally {
+        loading.value = false;
+      }
+    };
 
     return {
       scans,
       stats,
       trendTimeRange,
       loading,
+      loadingStats,
+      loadingRisk,
+      loadingPlatform,
+      loadingTrend,
       error,
       getStatusClass,
       getAppTypeClass,
@@ -783,10 +1182,10 @@ export default defineComponent({
       viewReport,
       formatDate,
       staticCount: computed(
-        () => scans.value.filter((scan: any) => scan.ANALYZER?.includes('static')).length
+        () => scans.value.filter((scan: any) => scan.ANALYZER === 'static_analyzer').length
       ),
       dynamicCount: computed(
-        () => scans.value.filter((scan: any) => !scan.ANALYZER?.includes('static')).length
+        () => scans.value.filter((scan: any) => scan.ANALYZER === 'dynamic_analyzer').length
       ),
       androidCount: computed(
         () =>
@@ -804,6 +1203,12 @@ export default defineComponent({
       chartOptions,
       maxScoreAppNames,
       minScoreAppNames,
+      getDynamicStatus,
+      getAnalysisTypeDisplay,
+      getDynamicStatusClass,
+      getDynamicStatusText,
+      viewStaticReport,
+      viewDynamicReport
     }
   },
 })

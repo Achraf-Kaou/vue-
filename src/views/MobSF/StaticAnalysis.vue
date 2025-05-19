@@ -1,12 +1,9 @@
 <template>
   <div class="max-w p-4">
-    <h1 class="text-2xl font-bold text-center mb-6">
-      Analyseur de Sécurité d'Applications Mobiles
-    </h1>
 
     <div class="space-y-6">
       <UploadApp
-        v-if="currentStep === 'upload'"
+        v-if="currentStep === 'upload' || currentStep === 'analysis'"
         @file-uploaded="handleFileUploaded"
         @analysis-start="handleAnalysisStart"
       />
@@ -19,14 +16,6 @@
       />
 
       <div v-if="currentStep === 'report'">
-        <div class="mb-4">
-          <button
-            @click="handleBackToUpload"
-            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center transition-colors"
-          >
-            Analyser une autre application
-          </button>
-        </div>
 
         <AndroidStaticReport
           v-if="fileHash && analysisResults && isAndroidApp"
@@ -340,6 +329,7 @@ export default defineComponent({
               console.log("Résultats de l'analyse:", reportResponse.data)
               addLog('Rapport récupéré avec succès!', 'success', '[SUCCÈS] ')
               isAnalysisComplete.value = true
+              currentStep.value = 'report'
             } else {
               addLog('Rapport vide ou invalide reçu', 'warning', '[ATTENTION] ')
               isAnalysisComplete.value = true
@@ -374,6 +364,7 @@ export default defineComponent({
           analysisResults.value = reportResponse.data
           console.log("Résultats de l'analyse:", reportResponse.data)
           isAnalysisComplete.value = true
+          currentStep.value = 'report'
         } else {
           throw new Error('Réponse vide ou invalide')
         }
@@ -392,6 +383,8 @@ export default defineComponent({
             if (reportResponse && reportResponse.data) {
               analysisResults.value = reportResponse.data
               addLog('Rapport récupéré avec succès!', 'success', '[SUCCÈS] ')
+              isAnalysisComplete.value = true
+              currentStep.value = 'report'
             } else {
               throw new Error('Réponse vide ou invalide lors de la nouvelle tentative')
             }
@@ -403,6 +396,7 @@ export default defineComponent({
             )
           } finally {
             isAnalysisComplete.value = true
+            currentStep.value = 'report'
           }
         }, 3000)
       }
@@ -416,6 +410,8 @@ export default defineComponent({
     }
 
     const handleAnalysisComplete = () => {
+      console.log('Analyse terminée')
+      isAnalysisComplete.value = true
       if (fileHash.value && analysisResults.value) {
         currentStep.value = 'report'
       } else {

@@ -1,35 +1,8 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- Back button when viewing report -->
-      <div v-if="showReport" class="mb-6">
-        <button
-          @click="closeReport"
-          class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          <ChevronLeft class="w-4 h-4 mr-2" />
-          Back to Scan List
-        </button>
-      </div>
-
+  <div class="min-h-screen bg-gray-50 py-4">
+    <div class="max-auto mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Main content -->
       <div v-if="!showReport">
-        <div class="flex justify-between items-center mb-6">
-          <div>
-            <h1 class="text-3xl font-bold text-gray-900">MobSF Scan History</h1>
-            <p class="mt-2 text-sm text-gray-500">
-              View your recent security scans and analysis results
-            </p>
-          </div>
-          <button
-            @click="navigateTo('/')"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <Upload class="w-4 h-4 mr-2" />
-            New Scan
-          </button>
-        </div>
-
         <!-- Stats Overview -->
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-4 mb-8">
           <div class="bg-white overflow-hidden shadow rounded-lg">
@@ -117,16 +90,28 @@
         <div class="mb-6 border-b border-gray-200">
           <nav class="-mb-px flex space-x-8">
             <button
-              @click="setActiveTab('scans')"
+              @click="setActiveTab('static')"
               :class="[
                 'whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm',
-                activeTab === 'scans'
+                activeTab === 'static'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
               ]"
             >
-              <FileSearch class="w-5 h-5 inline mr-2" />
-              Recent Scans
+              <Activity class="w-5 h-5 inline mr-2" />
+              Static Analysis
+            </button>
+            <button
+              @click="setActiveTab('dynamic')"
+              :class="[
+                'whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm',
+                activeTab === 'dynamic'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              ]"
+            >
+              <Zap class="w-5 h-5 inline mr-2" />
+              Dynamic Analysis
             </button>
             <button
               @click="setActiveTab('tasks')"
@@ -145,20 +130,20 @@
 
         <!-- Filters -->
         <div
-          v-if="activeTab === 'scans'"
+          v-if="activeTab === 'static' || activeTab === 'dynamic'"
           class="bg-white shadow overflow-hidden sm:rounded-lg mb-6"
         >
           <div class="px-4 py-5 sm:p-6">
             <form class="flex flex-wrap gap-4">
               <div class="flex-1 min-w-[200px]">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Scan Type</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Platform</label>
                 <select
                   v-model="filters.type"
                   class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
                 >
-                  <option value="">All Types</option>
-                  <option value="static">Static Analysis</option>
-                  <option value="dynamic">Dynamic Analysis</option>
+                  <option value="">All Platforms</option>
+                  <option value="android">Android</option>
+                  <option value="ios">iOS</option>
                 </select>
               </div>
 
@@ -223,15 +208,15 @@
           </div>
         </div>
 
-        <!-- Recent Scans Tab -->
+        <!-- Static Analysis Tab -->
         <div
-          v-if="!loading && !error && activeTab === 'scans'"
+          v-if="!loading && !error && activeTab === 'static'"
           class="bg-white shadow overflow-hidden sm:rounded-md"
         >
           <div class="px-4 py-5 border-b border-gray-200 sm:px-6 flex justify-between items-center">
             <div>
-              <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Scans</h3>
-              <p class="mt-1 text-sm text-gray-500">List of recently analyzed applications</p>
+              <h3 class="text-lg leading-6 font-medium text-gray-900">Static Analysis</h3>
+              <p class="mt-1 text-sm text-gray-500">List of statically analyzed applications</p>
             </div>
             <button
               @click="refreshScans"
@@ -242,9 +227,9 @@
             </button>
           </div>
 
-          <ul v-if="scans.length > 0" class="divide-y divide-gray-200">
+          <ul v-if="staticScansArray.length > 0" class="divide-y divide-gray-200">
             <li
-              v-for="(scan, index) in scans"
+              v-for="(scan, index) in staticScansArray"
               :key="index"
               class="px-4 py-4 sm:px-6 hover:bg-gray-50"
             >
@@ -253,7 +238,7 @@
                   <div class="flex-shrink-0">
                     <div :class="['p-2 rounded-md', getAppTypeClass(scan.SCAN_TYPE || scan.type)]">
                       <component
-                        :is="getAppTypeIcon(scan.SCAN_TYPE || scan.type)"
+                        :is="getAppTypeIcon(scan.MD5)"
                         class="h-6 w-6 text-white"
                       />
                     </div>
@@ -268,8 +253,8 @@
                   </div>
                 </div>
                 <div class="flex items-center">
-                  <span :class="['px-2 py-1 text-xs rounded-full', getTypeClass(scan.SCAN_TYPE)]">
-                    {{ scan.SCAN_TYPE }}
+                  <span :class="['px-2 py-1 text-xs rounded-full', getTypeClass(scan.SCAN_TYPE || 'android')]">
+                    {{ scan.SCAN_TYPE || 'android' }}
                   </span>
                   <div class="ml-4 flex">
                     <button
@@ -279,14 +264,6 @@
                       title="View Report"
                     >
                       <FileSearch class="w-5 h-5" />
-                    </button>
-                    <button
-                      @click="deleteScan(scan)"
-                      :disabled="scan.status === 'In Progress'"
-                      class="text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Delete Scan"
-                    >
-                      <Trash2 class="w-5 h-5" />
                     </button>
                   </div>
                 </div>
@@ -298,7 +275,7 @@
                 </div>
                 <div>
                   <FileType class="h-4 w-4 inline mr-1" />
-                  {{ scan.ANALYZER }}
+                  {{ scan.ANALYZER || "static_analysis" }}
                 </div>
                 <div>
                   <Tag class="h-4 w-4 inline mr-1" />
@@ -313,9 +290,9 @@
           </ul>
           <div v-else class="px-4 py-12 text-center text-gray-500">
             <FileSearch class="mx-auto h-12 w-12 text-gray-400" />
-            <h3 class="mt-2 text-sm font-medium text-gray-900">No scans found</h3>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No static scans found</h3>
             <p class="mt-1 text-sm text-gray-500">
-              Get started by uploading an application to scan.
+              Get started by uploading an application for static analysis.
             </p>
             <div class="mt-6">
               <button
@@ -323,7 +300,105 @@
                 class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <Upload class="w-4 h-4 mr-2" />
-                New Scan
+                New Static Scan
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Analysis Tab -->
+        <div
+          v-if="!loading && !error && activeTab === 'dynamic'"
+          class="bg-white shadow overflow-hidden sm:rounded-md"
+        >
+          <div class="px-4 py-5 border-b border-gray-200 sm:px-6 flex justify-between items-center">
+            <div>
+              <h3 class="text-lg leading-6 font-medium text-gray-900">Dynamic Analysis</h3>
+              <p class="mt-1 text-sm text-gray-500">List of dynamically analyzed applications</p>
+            </div>
+            <button
+              @click="refreshScans"
+              class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <RefreshCw class="w-4 h-4 mr-2" />
+              Refresh
+            </button>
+          </div>
+
+          <ul v-if="dynamicScansArray.length > 0" class="divide-y divide-gray-200">
+            <li
+              v-for="(scan, index) in dynamicScansArray"
+              :key="index"
+              class="px-4 py-4 sm:px-6 hover:bg-gray-50"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <div :class="['p-2 rounded-md', getAppTypeClass(scan.SCAN_TYPE || scan.type)]">
+                      <component
+                        :is="getAppTypeIcon(scan.MD5)"
+                        class="h-6 w-6 text-white"
+                      />
+                    </div>
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">
+                      {{ scan.APP_NAME || 'Unnamed App' }}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      {{ scan.PACKAGE_NAME || scan.FILE_NAME || 'No package name' }}
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center">
+                  <span :class="['px-2 py-1 text-xs rounded-full', getTypeClass(scan.SCAN_TYPE || 'android')]">
+                    {{ scan.SCAN_TYPE || 'android' }}
+                  </span>
+                  <div class="ml-4 flex">
+                    <button
+                      @click="viewReport(scan)"
+                      :disabled="scan.status === 'In Progress'"
+                      class="text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed mr-2"
+                      title="View Report"
+                    >
+                      <FileSearch class="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-gray-500">
+                <div>
+                  <Clock class="h-4 w-4 inline mr-1" />
+                  {{ formatDate(scan.TIMESTAMP) }}
+                </div>
+                <div>
+                  <FileType class="h-4 w-4 inline mr-1" />
+                  {{ scan.ANALYZER || "dynamic_analysis" }}
+                </div>
+                <div>
+                  <Tag class="h-4 w-4 inline mr-1" />
+                  v{{ scan.VERSION_NAME }}
+                </div>
+                <div>
+                  <User class="h-4 w-4 inline mr-1" />
+                  {{ scan.MD5 }}
+                </div>
+              </div>
+            </li>
+          </ul>
+          <div v-else class="px-4 py-12 text-center text-gray-500">
+            <Zap class="mx-auto h-12 w-12 text-gray-400" />
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No dynamic scans found</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              Get started by running a dynamic analysis on an application.
+            </p>
+            <div class="mt-6">
+              <button
+                @click="navigateTo('/dynamic-analysis')"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <Zap class="w-4 h-4 mr-2" />
+                New Dynamic Scan
               </button>
             </div>
           </div>
@@ -357,7 +432,7 @@
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
                   <div class="flex-shrink-0">
-                    <div :class="['p-2 rounded-md', getTaskStatusClass(task.status)]">
+                    <div :class="['p-2 rounded-md', getTaskStatusClass(task.status, task.app_name)]">
                       <component :is="getTaskStatusIcon(task.status)" class="h-6 w-6 text-white" />
                     </div>
                   </div>
@@ -365,38 +440,31 @@
                     <div class="text-sm font-medium text-gray-900">
                       {{ task.file_name }}
                     </div>
-                    <div class="text-sm text-gray-500">
-                      {{ task.description }}
-                    </div>
                   </div>
                 </div>
                 <div class="flex items-center">
                   <span
                     :class="[
                       'px-2 py-1 text-xs rounded-full',
-                      getTaskStatusBadgeClass(task.status),
+                      getTaskStatusBadgeClass(task.status, task.app_name),
                     ]"
                   >
-                    {{ task.status }}
+                    {{ task.app_name==='Failed' ? 'Failed' : task.status }}
                   </span>
                 </div>
               </div>
               <div class="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-gray-500">
                 <div>
-                  <Clock class="h-4 w-4 inline mr-1" />
-                  {{ formatDate(task.timestamp) }}
+                  created :
+                  {{ formatDate(task.created_at) + ' at ' + formatTime(task.completed_at) }}
                 </div>
                 <div>
-                  <User class="h-4 w-4 inline mr-1" />
-                  {{ task.requested_by }}
+                  started :
+                  {{ formatDate(task.started_at) + ' at ' + formatTime(task.completed_at) }}
                 </div>
                 <div>
-                  <FileType class="h-4 w-4 inline mr-1" />
-                  {{ task.type }}
-                </div>
-                <div>
-                  <Activity class="h-4 w-4 inline mr-1" />
-                  Progress: {{ task.progress }}%
+                  completed at :
+                  {{ formatDate(task.completed_at) + ' at ' + formatTime(task.completed_at) }}
                 </div>
               </div>
             </li>
@@ -407,40 +475,6 @@
             <p class="mt-1 text-sm text-gray-500">
               No scan tasks are currently running or scheduled.
             </p>
-          </div>
-        </div>
-
-        <!-- Delete Confirmation Dialog -->
-        <div
-          v-if="deleteDialogVisible"
-          class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center"
-        >
-          <div class="bg-white rounded-lg p-6 max-w-sm w-full">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <AlertCircle class="h-6 w-6 text-red-600" />
-              </div>
-              <div class="ml-3">
-                <h3 class="text-lg font-medium text-gray-900">Delete Scan</h3>
-                <p class="mt-2 text-sm text-gray-500">
-                  Are you sure you want to delete this scan? This action cannot be undone.
-                </p>
-              </div>
-            </div>
-            <div class="mt-4 flex justify-end space-x-3">
-              <button
-                @click="setDeleteDialogVisible(false)"
-                class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Cancel
-              </button>
-              <button
-                @click="confirmDelete"
-                class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
-                Delete
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -457,24 +491,29 @@
         <div v-else>
           <div v-if="!reportData" class="p-4 text-gray-600">No report data available</div>
           <template v-else>
-            <AndroidStaticReport
-              v-if="
-                reportData &&
-                (reportData.SCAN_TYPE === 'apk' ||
-                  reportData.SCAN_TYPE === 'xapk' ||
-                  reportData.app_type === 'apk' ||
-                  reportData.app_type === 'xapk')
-              "
-              :reportData="reportData"
-              :fileHash="selectedFileHash"
-            />
-            <iOSStaticReport
-              v-else="
-                reportData && (reportData.SCAN_TYPE === 'ipa' || reportData.app_type === 'ipa')
-              "
-              :reportData="reportData"
-              :fileHash="selectedFileHash"
-            />
+            <div v-if="reportData.apimon">
+              <AndroidDynamicReport :reportData="reportData" :fileHash="reportData.hash" />
+            </div>
+            <div v-else>
+              <AndroidStaticReport
+                v-if="
+                  reportData &&
+                  (reportData.SCAN_TYPE === 'apk' ||
+                    reportData.SCAN_TYPE === 'xapk' ||
+                    reportData.app_type === 'apk' ||
+                    reportData.app_type === 'xapk')
+                "
+                :reportData="reportData"
+                :fileHash="selectedFileHash"
+              />
+              <iOSStaticReport
+                v-else="
+                  reportData && (reportData.SCAN_TYPE === 'ipa' || reportData.app_type === 'ipa')
+                "
+                :reportData="reportData"
+                :fileHash="selectedFileHash"
+              />
+            </div>
           </template>
         </div>
       </div>
@@ -486,8 +525,10 @@
 import { defineComponent, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import StaticAnalyzerService from '../../api/StaticAnalyzer'
+import { dynamicAnalyzer } from '../../api/DynamicAnalyzer'
 import AndroidStaticReport from '../../components/MobSF/general/report/static/android/AndroidStaticReport.vue'
 import iOSStaticReport from '../../components/MobSF/general/report/static/ios/iOSStaticReport.vue'
+import AndroidDynamicReport from '../../components/MobSF/general/report/dynamic/android/AndroidDynamicReport.vue'
 import {
   FileSearch,
   ListTodo,
@@ -527,6 +568,7 @@ interface Scan {
   MD5: string
   TIMESTAMP: string
   SCAN_LOGS: string
+  ICON_PATH?: string
   type?: string
   status?: string
 }
@@ -577,13 +619,16 @@ export default defineComponent({
     Zap,
     AndroidStaticReport,
     iOSStaticReport,
+    AndroidDynamicReport,
     X,
     List,
   },
   setup() {
-    const activeTab = ref('scans')
+    const activeTab = ref('static')
     const scans = ref<Scan[]>([])
     const tasks = ref<Task[]>([])
+    const staticScansArray = ref<any[]>([])
+    const dynamicScansArray = ref<any[]>([])
     const loading = ref(true)
     const error = ref<string | null>(null)
     const currentPage = ref(1)
@@ -600,42 +645,42 @@ export default defineComponent({
     const reportData = ref<any>(null)
     const showReport = ref(false)
     const selectedFileHash = ref('')
+    const service = dynamicAnalyzer
 
     // Methods
     const fetchScans = async () => {
-      loading.value = true
-      error.value = null
+      loading.value = true;
+      error.value = null;
 
       try {
-        const response = await StaticAnalyzerService.getRecentScans(
+        // Récupérer les analyses statiques
+        const staticResponse = await StaticAnalyzerService.getRecentScans(
           currentPage.value,
           pageSize.value
-        )
-        scans.value = response.data.content
-        total.value = response.data.count
+        );
+        const staticScans = [...staticResponse.data.content];
+        const staticTotal = staticResponse.data.count;
 
-        if (filters.value.type) {
-          scans.value = scans.value.filter((scan) => scan.type === filters.value.type)
-        }
+        // Récupérer les analyses dynamiques
+        const dynamicResponse = await service.getApps();
+        const dynamicScans = dynamicResponse.apps.filter((scan) => scan.DYNAMIC_REPORT_EXISTS === true);
+        const dynamicTotal = dynamicScans.length;
 
-        if (filters.value.status) {
-          scans.value = scans.value.filter((scan) => scan.status === filters.value.status)
-        }
+        // Mettre à jour les totaux
+        total.value = staticTotal + dynamicTotal;
 
-        if (filters.value.dateRange[0] && filters.value.dateRange[1]) {
-          const startDate = new Date(filters.value.dateRange[0])
-          const endDate = new Date(filters.value.dateRange[1])
-          scans.value = scans.value.filter((scan) => {
-            const scanDate = new Date(scan.TIMESTAMP)
-            return scanDate >= startDate && scanDate <= endDate
-          })
-        }
+        // Stocker séparément les deux types d'analyses
+        staticScansArray.value = staticScans;
+        dynamicScansArray.value = dynamicScans;
+
+        // Possibilité de les combiner si nécessaire (selon votre UI)
+        scans.value = [...staticScansArray.value, ...dynamicScansArray.value];
       } catch (err) {
-        error.value = err instanceof Error ? err.message : 'Failed to fetch scans'
+        error.value = err instanceof Error ? err.message : 'Failed to fetch scans';
       } finally {
-        loading.value = false
+        loading.value = false;
       }
-    }
+    };
 
     const fetchTasks = async () => {
       loading.value = true
@@ -644,6 +689,7 @@ export default defineComponent({
       try {
         const response = await StaticAnalyzerService.getScanTasks()
         tasks.value = response.data
+        console.log('Tasks:', tasks.value)
       } catch (err) {
         error.value = err instanceof Error ? err.message : 'Failed to fetch tasks'
       } finally {
@@ -668,9 +714,15 @@ export default defineComponent({
         loading.value = true
         error.value = null
         console.log('Fetching report for scan:', scan)
-        const response = await StaticAnalyzerService.getJsonReport(scan.MD5)
-        console.log('Report response:', response.data)
-        reportData.value = response.data
+        if (scan.ANALYZER?.includes('static')) {
+          const response = await StaticAnalyzerService.getJsonReport(scan.MD5)
+          console.log('Report response:', response.data)
+          reportData.value = response.data
+        }else {
+          const response = await service.getReport(scan.MD5)
+          console.log('Dynamic report response:', response.data)
+          reportData.value = response
+        }
         selectedFileHash.value = scan.MD5
         showReport.value = true
       } catch (err) {
@@ -730,6 +782,11 @@ export default defineComponent({
       const date = new Date(timestamp)
       return date.toLocaleDateString()
     }
+    const formatTime = (timestamp: string) => {
+      if (!timestamp) return 'N/A';
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    };
 
     const getStatusClass = (status: string) => {
       switch (status) {
@@ -761,6 +818,7 @@ export default defineComponent({
       if (!type) return 'bg-gray-600'
       switch (type.toLowerCase()) {
         case 'apk':
+          return 'bg-green-600'
         case 'xapk':
           return 'bg-green-600'
         case 'ipa':
@@ -774,21 +832,8 @@ export default defineComponent({
       }
     }
 
-    const getAppTypeIcon = (type: string | undefined) => {
-      if (!type) return Package
-      switch (type.toLowerCase()) {
-        case 'apk':
-        case 'xapk':
-          return Smartphone
-        case 'ipa':
-          return Smartphone
-        case 'static':
-          return FileSearch
-        case 'dynamic':
-          return Smartphone
-        default:
-          return Package
-      }
+    const getAppTypeIcon = (md5: string | undefined) => {
+      if (!md5) return `http://localhost:8089/download/${md5}-icon.png`
     }
 
     const getTypeClass = (type: string | undefined) => {
@@ -808,49 +853,62 @@ export default defineComponent({
       }
     }
 
-    const getTaskStatusClass = (status: string) => {
-      switch (status?.toLowerCase()) {
-        case 'completed':
-          return 'bg-green-600'
-        case 'in_progress':
-          return 'bg-blue-600'
-        case 'pending':
-          return 'bg-yellow-600'
-        case 'failed':
-          return 'bg-red-600'
-        default:
-          return 'bg-gray-600'
+    const getTaskStatusClass = (status: string, app_name?: string) => {
+      if (app_name?.toLowerCase() === 'failed') {
+        return 'bg-red-600'
+      }else {
+        switch (status?.toLowerCase() || app_name?.toLowerCase()) {
+          case 'success':
+            return 'bg-green-600'
+          case 'in_progress':
+            return 'bg-blue-600'
+          case 'pending':
+            return 'bg-yellow-600'
+          case 'failed':
+            return 'bg-red-600'
+          default:
+            return 'bg-gray-600'
+        }
       }
     }
 
-    const getTaskStatusIcon = (status: string) => {
-      switch (status?.toLowerCase()) {
-        case 'completed':
-          return CheckCircle
-        case 'in_progress':
-          return Loader
-        case 'pending':
-          return Clock
-        case 'failed':
-          return AlertOctagon
-        default:
-          return Timer
+    const getTaskStatusIcon = (status: string, app_name?: string) => {
+      if (app_name?.toLowerCase() === 'failed') {
+        return AlertOctagon
+      }else {
+        switch (status?.toLowerCase() || app_name?.toLowerCase()) {
+          case 'success':
+            return CheckCircle
+          case 'in_progress':
+            return Loader
+          case 'pending':
+            return Clock
+          case 'failed':
+            return AlertOctagon
+          default:
+            return Timer
+        }
       }
     }
 
-    const getTaskStatusBadgeClass = (status: string) => {
-      switch (status?.toLowerCase()) {
-        case 'completed':
-          return 'bg-green-100 text-green-800'
-        case 'in_progress':
-          return 'bg-blue-100 text-blue-800'
-        case 'pending':
-          return 'bg-yellow-100 text-yellow-800'
-        case 'failed':
-          return 'bg-red-100 text-red-800'
-        default:
-          return 'bg-gray-100 text-gray-800'
+    const getTaskStatusBadgeClass = (status: string , app_name?: string) => {
+      if (app_name?.toLowerCase() === 'failed') {
+        return 'bg-red-100 text-red-800'
+      }else {
+        switch (status?.toLowerCase() || app_name?.toLowerCase()==="failed") {
+                case 'success':
+                  return 'bg-green-100 text-green-800'
+                case 'in_progress':
+                  return 'bg-blue-100 text-blue-800'
+                case 'pending':
+                  return 'bg-yellow-100 text-yellow-800'
+                case 'failed':
+                  return 'bg-red-100 text-red-800'
+                default:
+                  return 'bg-gray-100 text-gray-800'
+              }
       }
+
     }
 
     onMounted(() => {
@@ -870,6 +928,8 @@ export default defineComponent({
       deleteDialogVisible,
       selectedScan,
       filters,
+      staticScansArray,
+      dynamicScansArray,
       staticCount: computed(
         () => scans.value.filter((scan) => scan.ANALYZER?.includes('static')).length
       ),
@@ -895,6 +955,7 @@ export default defineComponent({
       setActiveTab,
       setDeleteDialogVisible,
       formatDate,
+      formatTime,
       getStatusClass,
       getRiskClass,
       getAppTypeClass,

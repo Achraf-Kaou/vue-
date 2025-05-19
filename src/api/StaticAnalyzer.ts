@@ -63,12 +63,11 @@ export class StaticAnalyzerService {
 
   constructor() {
     // Base URL for MobSF API - can be configured through environment variables
-    this.baseUrl = import.meta.env.VITE_MOBSF_API_URL || 'http://localhost:8000/api/v1'
+    this.baseUrl = import.meta.env.VITE_MOBSF_API_URL
 
     // API key for authentication - should be stored in environment variables
     this.apiKey =
-      import.meta.env.VITE_MOBSF_API_KEY ||
-      '4a8071493d2be618bb43b2e2f5bb79d6a747498c22c65b96971ecd6bef7d9a66'
+      import.meta.env.VITE_MOBSF_API_KEY
 
     // Create axios instance with default headers
     this.api = axios.create({

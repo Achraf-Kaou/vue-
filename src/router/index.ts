@@ -1,9 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/MobSF/MainAnalyser.vue'
 import StaticAnalysis from '../views/MobSF/StaticAnalysis.vue'
-import DynamicAnalysis from '../views/DynamicAnalysis.vue'
-import DynamicAnalysisProgress from '../views/DynamicAnalysisProgress.vue'
-import DynamicAnalysisReport from '../views/DynamicAnalysisReport.vue'
+import DynamicAnalysis from '../views/MobSF/DynamicAnalysis.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -31,28 +29,13 @@ const router = createRouter({
     {
       path: '/dynamic-analysis/:hash',
       name: 'dynamic-analysis-hash',
-      component: () => import('../views/DynamicAnalysis.vue'),
+      component: () => import('../views/MobSF/DynamicAnalysis.vue'),
       props: true,
     },
     {
       path: '/static-analysis',
       name: 'static-analysis',
       component: StaticAnalysis,
-    },
-    {
-      path: '/static-analysis/report',
-      name: 'static-analysis-report',
-      component: () => import('../views/MobSF/StaticAnalysisReport.vue'),
-    },
-    {
-      path: '/dynamic-analysis/progress/:hash/:package',
-      name: 'DynamicAnalysisProgress',
-      component: DynamicAnalysisProgress,
-    },
-    {
-      path: '/dynamic-analysis/report',
-      name: 'DynamicAnalysisReport',
-      component: DynamicAnalysisReport,
     },
   ],
 })

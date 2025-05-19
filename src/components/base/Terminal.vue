@@ -1,25 +1,29 @@
 <template>
-  <div class="terminal">
-    <div class="terminal-header">
-      <div class="terminal-title">Terminal</div>
+  <div class="terminal" :style="{ height: height }">
+    <div class="terminal-header" :style="{ backgroundColor: headerBgColor }">
+      <div class="terminal-title">{{ title }}</div>
       <div class="terminal-controls">
-        <button @click="clearLogs" class="clear-button">Clear</button>
+        <slot name="controls">
+          <button v-if="showClearButton" @click="handleClear" class="clear-button">{{ clearButtonText }}</button>
+        </slot>
       </div>
     </div>
-    <div class="terminal-content" ref="terminalContent">
-      <div v-for="(log, index) in logs" :key="index" :class="['log-line', log.type]">
-        <span class="timestamp">{{ formatTimestamp(log.timestamp) }}</span>
-        <span class="message">{{ log.message }}</span>
-      </div>
+    <div class="terminal-content" ref="terminalContent" :style="{ backgroundColor: contentBgColor }">
+      <slot>
+        <div v-for="(log, index) in logs" :key="index" :class="['log-line', log.type || 'info']">
+          <span v-if="showTimestamps" class="timestamp">{{ formatTimestamp(log.timestamp) }}</span>
+          <span class="message" :style="getLogStyle(log.type)">{{ log.message }}</span>
+        </div>
+      </slot>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, nextTick } from 'vue'
+import { defineComponent, ref, watch, nextTick, PropType } from 'vue'
 
-interface Log {
-  type: 'info' | 'error' | 'success'
+export interface TerminalLog {
+  type?: 'info' | 'error' | 'success' | 'warning' | string
   message: string
   timestamp: Date
 }
@@ -28,28 +32,97 @@ export default defineComponent({
   name: 'Terminal',
   props: {
     logs: {
-      type: Array as () => Log[],
-      required: true,
+      type: Array as PropType<TerminalLog[]>,
+      default: () => [],
+    },
+    title: {
+      type: String,
+      default: 'Terminal',
+    },
+    height: {
+      type: String,
+      default: '400px',
+    },
+    showTimestamps: {
+      type: Boolean,
+      default: true,
+    },
+    autoScroll: {
+      type: Boolean,
+      default: true,
+    },
+    showClearButton: {
+      type: Boolean,
+      default: true,
+    },
+    clearButtonText: {
+      type: String,
+      default: 'Clear',
+    },
+    headerBgColor: {
+      type: String,
+      default: '#2d2d2d',
+    },
+    contentBgColor: {
+      type: String,
+      default: '#1e1e1e',
+    },
+    logColors: {
+      type: Object as PropType<Record<string, string>>,
+      default: () => ({
+        info: '#fff',
+        error: '#ff6b6b',
+        success: '#69db7c',
+        warning: '#ffd43b',
+      }),
+    },
+    timestampFormat: {
+      type: String,
+      default: 'time', // 'time', 'datetime', 'custom'
+    },
+    customTimestampFormatter: {
+      type: Function as PropType<(date: Date) => string>,
+      default: null,
     },
   },
+  emits: ['clear'],
   setup(props, { emit }) {
     const terminalContent = ref<HTMLElement | null>(null)
 
     const formatTimestamp = (timestamp: Date): string => {
-      return timestamp.toLocaleTimeString()
+      if (props.customTimestampFormatter) {
+        return props.customTimestampFormatter(timestamp)
+      }
+
+      switch (props.timestampFormat) {
+        case 'datetime':
+          return timestamp.toLocaleString()
+        case 'time':
+        default:
+          return timestamp.toLocaleTimeString()
+      }
     }
 
-    const clearLogs = () => {
+    const handleClear = () => {
       emit('clear')
+    }
+
+    const getLogStyle = (type?: string) => {
+      if (!type || !props.logColors[type]) {
+        return { color: props.logColors.info }
+      }
+      return { color: props.logColors[type] }
     }
 
     // Auto-scroll to bottom when new logs are added
     watch(
       () => props.logs.length,
       async () => {
-        await nextTick()
-        if (terminalContent.value) {
-          terminalContent.value.scrollTop = terminalContent.value.scrollHeight
+        if (props.autoScroll) {
+          await nextTick()
+          if (terminalContent.value) {
+            terminalContent.value.scrollTop = terminalContent.value.scrollHeight
+          }
         }
       }
     )
@@ -57,7 +130,8 @@ export default defineComponent({
     return {
       terminalContent,
       formatTimestamp,
-      clearLogs,
+      handleClear,
+      getLogStyle,
     }
   },
 })
@@ -65,16 +139,17 @@ export default defineComponent({
 
 <style scoped>
 .terminal {
-  background-color: #1e1e1e;
+  background-color: v-bind('contentBgColor');
   border-radius: 6px;
   overflow: hidden;
-  height: 400px;
   display: flex;
   flex-direction: column;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #3d3d3d;
 }
 
 .terminal-header {
-  background-color: #2d2d2d;
   padding: 8px 12px;
   display: flex;
   justify-content: space-between;
@@ -112,7 +187,6 @@ export default defineComponent({
   flex: 1;
   overflow-y: auto;
   padding: 12px;
-  font-family: 'Consolas', 'Monaco', monospace;
   font-size: 0.9em;
   line-height: 1.4;
 }
@@ -126,22 +200,7 @@ export default defineComponent({
 .timestamp {
   color: #888;
   margin-right: 8px;
-}
-
-.message {
-  color: #fff;
-}
-
-.log-line.info .message {
-  color: #fff;
-}
-
-.log-line.error .message {
-  color: #ff6b6b;
-}
-
-.log-line.success .message {
-  color: #69db7c;
+  font-size: 0.85em;
 }
 
 /* Scrollbar styling */

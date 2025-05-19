@@ -12,7 +12,7 @@
             <img
               id="app_icon"
               :src="
-                'http://localhost:8000/download/' +
+                'http://localhost:8089/download/' +
                 safeData.appInfo.icon_path?.replace('uploads/', '')
               "
             />

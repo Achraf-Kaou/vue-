@@ -279,22 +279,6 @@ const getDownloadLabel = computed(() => {
       <div class="flex flex-wrap justify-center gap-2">
         <!-- Common buttons for both Android and iOS -->
         <button
-          @click="startRescan"
-          class="flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-        >
-          <RefreshCw class="w-4 h-4 mr-2" />
-          Rescan
-        </button>
-
-        <button
-          @click="openSuppressionsModal"
-          class="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-        >
-          <Table class="w-4 h-4 mr-2" />
-          Manage Suppressions
-        </button>
-
-        <button
           @click="openLogsModal"
           class="flex items-center px-4 py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600 transition-colors"
         >
@@ -305,7 +289,7 @@ const getDownloadLabel = computed(() => {
         <!-- Android specific buttons -->
         <template v-if="isAndroidApp">
           <a
-            :href="`http://localhost:8000/manifest_view/${fileHash}/?type=${appType}`"
+            :href="`http://localhost:8089/manifest_view/${fileHash}/?type=${appType}`"
             target="_blank"
             class="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
           >
@@ -314,7 +298,7 @@ const getDownloadLabel = computed(() => {
           </a>
 
           <a
-            :href="`http://localhost:8000/source_code/?md5=${fileHash}&type=java`"
+            :href="`http://localhost:8089/source_code/?md5=${fileHash}&type=java`"
             target="_blank"
             class="flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
           >
@@ -336,7 +320,7 @@ const getDownloadLabel = computed(() => {
 
           <a
             v-if="!isIosDylib && !isIosALib"
-            :href="`http://localhost:8000/view_file_ios/?file=classdump.txt&md5=${fileHash}&type=ios`"
+            :href="`http://localhost:8089/view_file_ios/?file=classdump.txt&md5=${fileHash}&type=ios`"
             target="_blank"
             class="flex items-center px-4 py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600 transition-colors"
           >
@@ -347,7 +331,7 @@ const getDownloadLabel = computed(() => {
 
         <!-- Common download button with dynamic label -->
         <a
-          :href="`http://localhost:8000/download_binary/${fileHash}/`"
+          :href="`http://localhost:8089/download_binary/${fileHash}/`"
           class="flex items-center px-4 py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600 transition-colors"
         >
           <Download class="w-4 h-4 mr-2" />
@@ -479,41 +463,6 @@ const getDownloadLabel = computed(() => {
       </div>
     </Teleport>
 
-    <!-- Rescan Modal with Terminal -->
-    <Teleport to="body">
-      <div
-        v-if="showRescan"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      >
-        <div class="bg-white rounded-lg shadow-xl p-6 w-3/4 max-h-3/4 overflow-auto">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold">Rescanning Application</h3>
-            <button
-              @click="cancelRescan"
-              :disabled="isRescanning"
-              class="text-gray-500 hover:text-gray-700"
-            >
-              ×
-            </button>
-          </div>
-          <div class="border rounded p-3 bg-gray-50">
-            <LogsTerminal
-              :logs="logs"
-              :is-analysis-complete="isAnalysisComplete"
-              @analysis-complete="handleAnalysisComplete"
-            />
-          </div>
-          <div class="mt-4 text-right">
-            <button
-              @click="cancelRescan"
-              :disabled="isRescanning"
-              class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+
   </section>
 </template>
